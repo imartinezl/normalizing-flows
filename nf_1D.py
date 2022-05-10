@@ -207,6 +207,7 @@ np.random.seed(1)
 torch.random.manual_seed(1)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 batch_size = 128
 toy_train_size, toy_test_size = 2000, 1000
 

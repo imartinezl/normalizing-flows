@@ -300,15 +300,19 @@ np.random.seed(1)
 torch.random.manual_seed(1)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
+
+# torch.backends.cudnn.benchmark = True
 
 datasets = ["MOONS", "CIRCLES", "GAUSSIAN", "CRESCENT", 
     "CRESCENTCUBED", "SINEWAVE", "ABS", "SIGN", "TWOSPIRALS", 
     "CHECKERBOARD", "FOURCIRCLES", "DIAMOND", "FACE"]
 
 dataset_name = "CHECKERBOARD"
-toy_train_size = 2500
+toy_train_size = 25000
 toy_test_size = 500
-batch_size = 1000
+batch_size = 1024
+batch_size = 2560
 
 train_loader, test_loader = fetch_dataloaders(dataset_name, batch_size, device, toy_train_size, toy_test_size)
 
@@ -324,10 +328,16 @@ transforms = [
     # AffineTransform2D(True, device), AffineTransform2D(False, device),
     # AffineTransform2D(True, device), AffineTransform2D(False, device),
     # AffineTransform2D(True, device), AffineTransform2D(False, device),
+    # AffineTransform2D(True, device), AffineTransform2D(False, device),
+    # AffineTransform2D(True, device), AffineTransform2D(False, device),
     # LogitTransform2D(2, True),
     Constraint()
     ]
 model = NormalizingFlow(transforms)
+# if torch.cuda.device_count() > 1:
+#   print("Let's use", torch.cuda.device_count(), "GPUs!")
+#   model = nn.DataParallel(model)
+
 model.to(device)
 
 h = 1e-4
@@ -345,16 +355,45 @@ target_distribution = Beta(low, high)
 
 # %% TRAINING
 
-epochs = 125
-lr = 5e-3
-model, train_losses, test_losses = train_and_eval(model, epochs, lr, train_loader, test_loader, target_distribution)
-plot_loss(train_losses, test_losses)
-# %%
-test_log_likelihood = -test_losses[-1]
+# epochs = 10
+# lr = 5e-3
+# from torch.profiler import profile, record_function, ProfilerActivity
+# with profile(activities=[ProfilerActivity.CUDA], 
+#     profile_memory=False, record_shapes=False) as prof:
+#     with record_function("model_inference"):
+#         model, train_losses, test_losses = train_and_eval(model, epochs, lr, train_loader, test_loader, target_distribution)         
+# print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))
 
-scaler = np.mean(-np.log(train_loader.dataset.train_max - train_loader.dataset.train_min))
-test_log_likelihood_original = test_log_likelihood + scaler
-test_log_likelihood_original
+# exit()
+# %% TRAINING
+
+
+
+import time
+print("START")
+start_time = time.time()
+epochs = 500
+lr = 1e-3
+# CONFIGURATION
+config = {
+    "dataset_name": dataset_name,
+    "epochs": epochs,
+    "lr": lr,
+}
+model, train_losses, test_losses = train_and_eval(model, epochs, lr, train_loader, test_loader, target_distribution)
+stop_time = time.time()
+print("STOP")
+print(stop_time-start_time)
+# exit()
+
+plot_loss(train_losses, test_losses)
+plt.savefig("loss.pdf")
+# %%
+# test_log_likelihood = -test_losses[-1]
+
+# scaler = np.mean(-np.log(train_loader.dataset.train_max - train_loader.dataset.train_min))
+# test_log_likelihood_original = test_log_likelihood + scaler
+# test_log_likelihood_original
 # %% PLOTS
 
 @torch.no_grad()
@@ -421,11 +460,12 @@ def plot_evolution_2D(model, train_loader, target_distribution, n_samples=2000):
     fig, axs = plt.subplots(1, n, figsize=(4*n, 4), sharey=False)
     plt.subplots_adjust(wspace=0)
     
-    x = train_loader.dataset.tensors[0]
+    x = train_loader.dataset.tensors[0].to(train_loader.dataset.device)
     s = np.random.choice(range(x.shape[0]), n_samples, replace=False)
     x = x[s]
     xmin, xmax = x.min(), x.max()
     X = [x.cpu()]
+
 
     for transform in model.transforms:
         z, _ = transform.forward(x)
@@ -433,7 +473,6 @@ def plot_evolution_2D(model, train_loader, target_distribution, n_samples=2000):
         # new input x is z
         x = z
         X.append(x.cpu())
-
 
     # FORWARD GRID
     m = 20
@@ -516,5 +555,5 @@ def plot_evolution_2D(model, train_loader, target_distribution, n_samples=2000):
 
 # plot_2D(model, train_loader, target_distribution, n_samples=2000)
 plot_evolution_2D(model, train_loader, target_distribution, n_samples=1000)
-
+plt.savefig("rest.pdf")
 # %%
