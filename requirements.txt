@@ -9,3 +9,4 @@ seaborn
 tqdm
 scikit-image
 scikit-learn
+h5py
