@@ -14,7 +14,11 @@ for dataset in datasets:
 
     for run in runs:
         path = os.path.join(folder, dataset, run)
-        
+
+        if "loss.pdf" not in os.listdir(path):
+            print("Bad run" + str(run))
+            continue
+
         with open(os.path.join(path, 'config.json'), 'r') as fp:
             config = json.load(fp)
         config["run"] = run
