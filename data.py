@@ -51,7 +51,7 @@ class CustomDataset(torch.utils.data.Dataset):
         return self.x[index], self.y[index]
 
 class CustomSampler():
-    def __init__(self, dataset, batch_size, shuffle=False):
+    def __init__(self, dataset, batch_size, device, shuffle=False):
         super().__init__()
         data = dataset.tensors
         if len(data) == 1:
@@ -65,6 +65,7 @@ class CustomSampler():
         self.batch_size = batch_size
         self.n_batches = len(x) // batch_size
         self.shuffle = shuffle
+        self.device = device
 
     def __len__(self):
         return len(self.x)
@@ -78,8 +79,10 @@ class CustomSampler():
         b = self.batch_size
         for i in range(self.n_batches):
             if self.y is None:
+                # yield self.x[(i*b):((i+1)*b)].to(self.device), None
                 yield self.x[(i*b):((i+1)*b)], None
             else:
+                # yield self.x[(i*b):((i+1)*b)].to(self.device), self.y[(i*b):((i+1)*b)].to(self.device)
                 yield self.x[(i*b):((i+1)*b)], self.y[(i*b):((i+1)*b)]
 
 
@@ -249,9 +252,6 @@ def fetch_dataloaders(dataset_name, batch_size, device, toy_train_size=25000, to
         train_dataset = TensorDataset(torch.from_numpy(train_x).to(device))
         test_dataset  = TensorDataset(torch.from_numpy(test_x).to(device))
 
-        # train_dataset = CustomDataset(torch.from_numpy(train_x))
-        # test_dataset  = CustomDataset(torch.from_numpy(test_x))
-              
         input_dims = 2
         label_size = None
         lam = None
@@ -279,11 +279,12 @@ def fetch_dataloaders(dataset_name, batch_size, device, toy_train_size=25000, to
     # construct dataloaders
     # kwargs = {'num_workers': 4, 'pin_memory': True} if device.type == 'cuda' else {}
     # kwargs = {}
+
     # train_loader = DataLoader(train_dataset, batch_size, shuffle=True, **kwargs)
     # test_loader = DataLoader(test_dataset, batch_size, shuffle=False, **kwargs)
 
-    train_loader = CustomSampler(train_dataset, batch_size, shuffle=True)
-    test_loader = CustomSampler(train_dataset, batch_size, shuffle=False)
+    train_loader = CustomSampler(train_dataset, batch_size, device, shuffle=True)
+    test_loader = CustomSampler(train_dataset, batch_size, device, shuffle=False)
     
     # train_loader = MultipleGPUSampler(train_dataset, batch_size, shuffle=True)
     # test_loader = MultipleGPUSampler(train_dataset, batch_size, shuffle=False)
