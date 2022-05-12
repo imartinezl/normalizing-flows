@@ -291,9 +291,11 @@ def plot_evolution_1D(model, train_loader, target_distribution, n_samples=2000):
         xgrid = XG[k]
         ymin, ymax = axs[k].get_ylim()
         xv = torch.linspace(ymin, ymax, m)
-        g = torch.stack(torch.meshgrid(xgrid, xv), axis=2)
+        g = torch.stack(torch.meshgrid(xgrid, xv, indexing="ij"), axis=2)
         plot_grid(g, axs[k], color="black", alpha=0.1)
     plt.legend()
+
+    fig.savefig(os.path.join(path, "plot_normalizing_flow_evolution.pdf"), bbox_inches="tight")
 
 
     # BACKWARD Z => X
@@ -344,10 +346,12 @@ def plot_evolution_1D(model, train_loader, target_distribution, n_samples=2000):
         zgrid = ZG[k]
         ymin, ymax = axs[k].get_ylim()
         zv = torch.linspace(ymin, ymax, m)
-        g = torch.stack(torch.meshgrid(zgrid, zv), axis=2)
+        g = torch.stack(torch.meshgrid(zgrid, zv, indexing="ij"), axis=2)
         plot_grid(g, axs[k], color="black", alpha=0.1)
 
     plt.legend()
+
+    fig.savefig(os.path.join(path, "plot_generative_flow_evolution.pdf"), bbox_inches="tight")
 
 plot_evolution_1D(model, train_loader, target_distribution, n_samples=1000)
 
@@ -392,6 +396,9 @@ def plot_1D(model, train_loader, target_distribution, n_samples=2000):
     axs[2].plot(xs, z[xi])
     axs[2].set_xlabel("x")
     axs[2].set_ylabel("z")
+
+    fig.savefig(os.path.join(path, "plot_1D.pdf"), bbox_inches="tight")
+
 
 plot_1D(model, train_loader, target_distribution)
 # %%

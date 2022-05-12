@@ -302,17 +302,15 @@ torch.random.manual_seed(1)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # device = torch.device("cpu")
 
-# torch.backends.cudnn.benchmark = True
-
 datasets = ["MOONS", "CIRCLES", "GAUSSIAN", "CRESCENT", 
     "CRESCENTCUBED", "SINEWAVE", "ABS", "SIGN", "TWOSPIRALS", 
     "CHECKERBOARD", "FOURCIRCLES", "DIAMOND", "FACE"]
 
-dataset_name = "CHECKERBOARD"
+dataset_name = "TWOSPIRALS"
 toy_train_size = 25000
 toy_test_size = 500
-batch_size = 1024
-batch_size = 2560
+batch_size = 512
+# batch_size = 2560
 
 train_loader, test_loader = fetch_dataloaders(dataset_name, batch_size, device, toy_train_size, toy_test_size)
 
@@ -324,6 +322,10 @@ transforms = [
     # CPABTransform2D_BIS(True, device), CPABTransform2D_BIS(False, device), 
     # CPABTransform2D_BIS(True, device), CPABTransform2D_BIS(False, device), 
     CPABTransform2D(True, device=cpab_device, tess_size=20), CPABTransform2D(False, device=cpab_device, tess_size=20), 
+    CPABTransform2D(True, device=cpab_device, tess_size=20), CPABTransform2D(False, device=cpab_device, tess_size=20), 
+    CPABTransform2D(True, device=cpab_device, tess_size=20), CPABTransform2D(False, device=cpab_device, tess_size=20), 
+    CPABTransform2D(True, device=cpab_device, tess_size=20), CPABTransform2D(False, device=cpab_device, tess_size=20), 
+    CPABTransform2D(True, device=cpab_device, tess_size=20), CPABTransform2D(False, device=cpab_device, tess_size=20), 
     # CPABTransform2D(True, device=cpab_device), CPABTransform2D(False, device=cpab_device), 
     # AffineTransform2D(True, device), AffineTransform2D(False, device),
     # AffineTransform2D(True, device), AffineTransform2D(False, device),
@@ -334,9 +336,9 @@ transforms = [
     Constraint()
     ]
 model = NormalizingFlow(transforms)
-# if torch.cuda.device_count() > 1:
-#   print("Let's use", torch.cuda.device_count(), "GPUs!")
-#   model = nn.DataParallel(model)
+if torch.cuda.device_count() > 1:
+  print("Let's use", torch.cuda.device_count(), "GPUs!")
+  model = nn.DataParallel(model)
 
 model.to(device)
 
@@ -355,36 +357,24 @@ target_distribution = Beta(low, high)
 
 # %% TRAINING
 
-# epochs = 10
-# lr = 5e-3
-# from torch.profiler import profile, record_function, ProfilerActivity
-# with profile(activities=[ProfilerActivity.CUDA], 
-#     profile_memory=False, record_shapes=False) as prof:
-#     with record_function("model_inference"):
-#         model, train_losses, test_losses = train_and_eval(model, epochs, lr, train_loader, test_loader, target_distribution)         
-# print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))
-
-# exit()
-# %% TRAINING
-
-
-
-import time
-print("START")
-start_time = time.time()
 epochs = 500
-lr = 1e-3
+lr = 1e-4
 # CONFIGURATION
 config = {
+    "id": 0,
     "dataset_name": dataset_name,
+    "train_size": train_size,
+    "test_size": test_size,
+    "batch_size": batch_size,
+    "hidden_dim": 10,
+    "hidden_layers": 2,
+    "tess_size": 10,
+    "flow_steps": 2,
     "epochs": epochs,
     "lr": lr,
 }
 model, train_losses, test_losses = train_and_eval(model, epochs, lr, train_loader, test_loader, target_distribution)
 stop_time = time.time()
-print("STOP")
-print(stop_time-start_time)
-# exit()
 
 plot_loss(train_losses, test_losses)
 plt.savefig("loss.pdf")
@@ -477,7 +467,7 @@ def plot_evolution_2D(model, train_loader, target_distribution, n_samples=2000):
     # FORWARD GRID
     m = 20
     a = torch.linspace(xmin, xmax, m)
-    g = torch.stack(torch.meshgrid(a, a), axis=2)
+    g = torch.stack(torch.meshgrid(a, a, indexing="ij"), axis=2)
     xgrid = g.reshape(-1,2).to(x.device)
     XG = [xgrid.cpu()]
 
@@ -526,7 +516,7 @@ def plot_evolution_2D(model, train_loader, target_distribution, n_samples=2000):
     # BACKWARD GRID
     m = 20
     a = torch.linspace(zmin, zmax, m)
-    g = torch.stack(torch.meshgrid(a, a), axis=2)
+    g = torch.stack(torch.meshgrid(a, a, indexing="ij"), axis=2)
     zgrid = g.reshape(-1,2).to(z.device)
     ZG = [zgrid.cpu()]
 
