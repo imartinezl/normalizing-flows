@@ -205,10 +205,11 @@ def make_gaussian(n):
 def make_power(n):
     return np.random.power(5, n)
 
-import sklearn
+# import sklearn
+from sklearn.datasets import make_blobs as make_blobs_
 def make_blobs(n):
-    x, y = sklearn.datasets.make_blobs(n_samples=n, n_features=1, shuffle=True)
-    return x
+    x, y = make_blobs_(n_samples=n, n_features=1, shuffle=True)
+    return x.flatten()
 
 def fetch_dataloaders(dataset, batch_size, device, toy_train_size, toy_test_size):
     if dataset == "UNIFORM":
