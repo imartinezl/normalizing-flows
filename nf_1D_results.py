@@ -15,7 +15,8 @@ for dataset in datasets:
     for run in runs:
         path = os.path.join(folder, dataset, run)
 
-        if "loss.pdf" not in os.listdir(path):
+        # if "loss.pdf" not in os.listdir(path):
+        if "epoch_best.pth" not in os.listdir(path):
             print("Bad run " + str(run))
             continue
 
