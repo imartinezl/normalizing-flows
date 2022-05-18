@@ -3,9 +3,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import scipy
 import cpab
 import torch
 import torch.nn as nn
+from torch.distributions.multivariate_normal import MultivariateNormal
 from torch.distributions.normal import Normal
 from torch.distributions.beta import Beta
 
@@ -29,6 +31,7 @@ parser.add_argument('--tess-size', type=int, help='tessellation size')
 parser.add_argument('--flow-steps', type=int, help='flow steps')
 parser.add_argument('--epochs', type=int, help='epochs')
 parser.add_argument('--lr', type=float, help='learning rate')
+parser.add_argument('--model-type', type=str, help='model type')
 
 # %% PATH
 import time
@@ -114,7 +117,7 @@ class RealNVP(nn.Module):
         z = torch.cat([lower, upper], dim=1)
 
         log_det = torch.sum(s1_transformed, dim=1) + torch.sum(s2_transformed, dim=1)
-        log_det = torch.cat([s1_transformed, s2_transformed], dim=1)
+        # log_det = torch.cat([s1_transformed, s2_transformed], dim=1)
         return z, log_det
 
     def backward(self, z, y=None):
@@ -127,6 +130,31 @@ class RealNVP(nn.Module):
         upper = (upper - t1_transformed) * torch.exp(-s1_transformed)
         x = torch.cat([lower, upper], dim=1)
         log_det = torch.sum(-s1_transformed, dim=1) + torch.sum(-s2_transformed, dim=1)
+        return x, log_det
+
+
+class AffineConstantFlow(nn.Module):
+    """ 
+    Scales + Shifts the flow by (learned) constants per dimension.
+    In NICE paper there is a Scaling layer which is a special case of this where t is None
+    """
+    def __init__(self, dim, scale=True, shift=True):
+        super().__init__()
+        self.s = nn.Parameter(torch.randn(1, dim, requires_grad=True)) if scale else None
+        self.t = nn.Parameter(torch.randn(1, dim, requires_grad=True)) if shift else None
+        
+    def forward(self, x, y=None):
+        s = self.s if self.s is not None else x.new_zeros(x.size())
+        t = self.t if self.t is not None else x.new_zeros(x.size())
+        z = x * torch.exp(s) + t
+        log_det = torch.sum(s, dim=1)
+        return z, log_det
+    
+    def backward(self, z, y=None):
+        s = self.s if self.s is not None else z.new_zeros(z.size())
+        t = self.t if self.t is not None else z.new_zeros(z.size())
+        x = (z - t) * torch.exp(-s)
+        log_det = torch.sum(-s, dim=1)
         return x, log_det
 
 import math
@@ -205,32 +233,37 @@ class OneByOneConv(nn.Module):
     def __init__(self, dim):
         super().__init__()
         self.dim = dim
-        W, _ = sp.linalg.qr(np.random.randn(dim, dim))
-        P, L, U = sp.linalg.lu(W)
-        self.P = torch.tensor(P, dtype = torch.float)
-        self.L = nn.Parameter(torch.tensor(L, dtype = torch.float))
-        self.S = nn.Parameter(torch.tensor(np.diag(U), dtype = torch.float))
-        self.U = nn.Parameter(torch.triu(torch.tensor(U, dtype = torch.float),
-                              diagonal = 1))
+        W, _ = scipy.linalg.qr(np.random.randn(dim, dim))
+        P, L, U = scipy.linalg.lu(W)
+        self.P = nn.Parameter(torch.tensor(P, dtype = torch.float), requires_grad=False)
+        self.L = nn.Parameter(torch.tensor(L, dtype = torch.float), requires_grad=True)
+        self.S = nn.Parameter(torch.tensor(np.diag(U), dtype = torch.float), requires_grad=True)
+        self.U = nn.Parameter(torch.triu(torch.tensor(U, dtype = torch.float), diagonal = 1), requires_grad=True)
         self.W_inv = None
 
-    def forward(self, x):
-        L = torch.tril(self.L, diagonal = -1) + torch.diag(torch.ones(self.dim))
+    def forward(self, x, y=None):
+
+        L = torch.tril(self.L, diagonal = -1) + torch.diag(torch.ones(self.dim)).to(self.L.device)
         U = torch.triu(self.U, diagonal = 1)
         z = x @ self.P @ L @ (U + torch.diag(self.S))
         log_det = torch.sum(torch.log(torch.abs(self.S)))
+        log_det = torch.log(torch.abs(self.S))
+        log_det = torch.broadcast_to(log_det, x.shape)
         return z, log_det
 
-    def inverse(self, z):
+    def backward(self, z, y=None):
         if not self.W_inv:
-            L = torch.tril(self.L, diagonal = -1) + \
-                torch.diag(torch.ones(self.dim))
+            L = torch.tril(self.L, diagonal = -1) + torch.diag(torch.ones(self.dim)).to(self.L.device)
             U = torch.triu(self.U, diagonal = 1)
             W = self.P @ L @ (U + torch.diag(self.S))
             self.W_inv = torch.inverse(W)
         x = z @ self.W_inv
         log_det = -torch.sum(torch.log(torch.abs(self.S)))
+        log_det = -torch.log(torch.abs(self.S))
+        log_det = torch.broadcast_to(log_det, x.shape)
         return x, log_det
+
+
 
 class NSF_AR(nn.Module):
     """
@@ -342,7 +375,103 @@ class NSF_CL(nn.Module):
             upper, W, H, D, inverse = True, tail_bound = self.B)
         log_det += torch.sum(ld, dim = 1)
         return torch.cat([lower, upper], dim = 1), log_det
-        
+
+
+class CPAB_CL(nn.Module):
+    def __init__(self, dim, device, hidden_dim=10, hidden_layers=3, tess_size=10, zero_boundary=True):
+
+        super(CPAB_CL, self).__init__()
+
+        self.T = cpab.Cpab(tess_size, backend="pytorch", device=device, zero_boundary=zero_boundary, basis="svd")
+        self.d = self.T.params.d
+
+        self.dim = dim
+        lower_dim = dim // 2
+        upper_dim = dim - lower_dim
+
+        self.mlp = MLP(lower_dim, hidden_dim, hidden_layers, self.d*upper_dim)
+
+    def forward(self, x, y=None):
+        n = x.shape[0]
+        x1, x2 = x[:,:self.dim // 2], x[:,self.dim // 2:]
+
+        theta = self.mlp(x1).reshape(-1, self.d)
+        z1 = x1
+        z2 = self.T.transform_grid(x2.reshape(-1,1), theta).reshape(n,-1)
+        z = torch.hstack([z1, z2])
+
+        dz_dx_1 = torch.ones_like(x1)
+        dz_dx_2 = self.T.gradient_space(x2.reshape(-1,1), theta).reshape(n,-1)
+        dz_dx = torch.hstack([dz_dx_1, dz_dx_2])
+        log_dz_dx = dz_dx.log()
+
+        return z, log_dz_dx
+
+    def backward(self, z, y=None):
+        n = z.shape[0]
+        z1, z2 = z[:,:self.dim // 2], z[:,self.dim // 2:]
+       
+        theta = self.mlp(z1).reshape(-1, self.d)
+
+        x1 = z1
+        x2 = self.T.transform_grid(z2.reshape(-1,1), -theta).reshape(n,-1)
+        x = torch.hstack([x1, x2])
+
+        dx_dz_1 = torch.ones_like(z1)
+        dx_dz_2 = self.T.gradient_space(z2.reshape(-1,1), -theta).reshape(n,-1)
+        dx_dz = torch.hstack([dx_dz_1, dx_dz_2])
+        log_dx_dz = dx_dz.log()
+
+        return x, log_dx_dz
+
+
+class CPAB_AR(nn.Module):
+    def __init__(self, dim, device, hidden_dim=10, hidden_layers=3, tess_size=10, zero_boundary=True):
+
+        super(CPAB_AR, self).__init__()
+
+        self.T = cpab.Cpab(tess_size, backend="pytorch", device=device, zero_boundary=zero_boundary, basis="svd")
+        self.d = self.T.params.d
+
+        self.dim = dim
+
+        self.init_param = nn.Parameter(torch.Tensor(self.d), requires_grad=True)
+        self.layers = nn.ModuleList()
+        for i in range(1, dim):
+            self.layers += [MLP(i, hidden_dim, hidden_layers, self.d)]
+
+    def forward(self, x, y=None):
+        eps = 1e-7
+        x = torch.clip(x, eps, 1-eps)
+
+        z, log_dz_dx = torch.zeros_like(x), torch.zeros_like(x)
+        for i in range(self.dim):
+
+            if i == 0:
+                theta = self.init_param.expand(x.shape[0], self.d).contiguous()
+            else:
+                theta = self.layers[i - 1](x[:, :i])
+
+            z[:,i] = self.T.transform_grid(x[:,i].unsqueeze(1), theta).squeeze()
+            log_dz_dx[:, i] = self.T.gradient_space(x[:,i].unsqueeze(1), theta).squeeze()
+        return z, log_dz_dx
+
+    def backward(self, z, y=None):
+        eps = 1e-7
+        z = torch.clip(z, eps, 1-eps)
+        x, log_dx_dz = torch.zeros_like(z), torch.zeros_like(z)
+
+        for i in range(self.dim):
+            if i == 0:
+                theta = self.init_param.expand(x.shape[0], self.d).contiguous()
+            else:
+                theta = self.layers[i - 1](x[:, :i])
+
+            x[:, i] = self.T.transform_grid(z[:,i].unsqueeze(1), -theta).squeeze()
+            log_dx_dz[:, i] = self.T.gradient_space(z[:,i].unsqueeze(1), -theta).squeeze()
+        return x, log_dx_dz
+
+
 class CPABTransform(nn.Module):
 
     def __init__(self, left, device, hidden_dim=10, hidden_layers=3, tess_size=10, zero_boundary=True):
@@ -440,11 +569,20 @@ cpab_device = "gpu" if device.type == "cuda" else "cpu"
 
 transforms = []
 for i in range(args.flow_steps):
-    #kwargs = {'hidden_dim':args.hidden_dim, 'hidden_layers':args.hidden_layers, 'tess_size':args.tess_size, 'zero_boundary':True, 'device':cpab_device}
-    kwargs = {'hidden_dim':args.hidden_dim}
-    m = RealNVP(d, **kwargs)
-    transforms.append(m)
-transforms.append(Constraint())    
+    kwargs = {'hidden_dim':args.hidden_dim, 'hidden_layers':args.hidden_layers, 'tess_size':args.tess_size, 'zero_boundary':True, 'device':cpab_device}
+    # kwargs = {'hidden_dim':args.hidden_dim}
+    # m = RealNVP(d, **kwargs)
+    if args.model_type == "CL":
+        m = CPAB_CL(d, **kwargs)
+        transforms.append(m)
+        m = OneByOneConv(d)
+        transforms.append(m)
+    elif args.model_type == "AR":
+        m = CPAB_AR(d, **kwargs)
+        transforms.append(m)
+        m = OneByOneConv(d)
+        transforms.append(m)
+transforms.append(Constraint())
 
 model = NormalizingFlow(transforms)
 model.to(device)
@@ -453,10 +591,15 @@ model.to(device)
 # high = torch.FloatTensor(torch.ones(d)).to(device)
 # target_distribution = Normal(low, high)
 
+# low = torch.FloatTensor(torch.zeros(d)).to(device)
+# high = torch.FloatTensor(torch.ones(d)).to(device)
+# target_distribution = MultivariateNormal(low, high)
+
 alpha = 12
 low = torch.FloatTensor(torch.ones(d)*alpha).to(device)
 high = torch.FloatTensor(torch.ones(d)*alpha).to(device)
 target_distribution = Beta(low, high)
+
 
 # %% TRAINING
 
