@@ -172,12 +172,13 @@ def fetch_dataloaders(dataset_name, batch_size, device, toy_train_size=25000, to
         train_x = np.concatenate((dataset.trn.x, dataset.val.x), axis=0).astype(np.float32)
         test_x = dataset.tst.x.astype(np.float32)
 
-        train_x = train_x[:toy_train_size]
-        test_x = test_x[:toy_test_size]
+        # train_x = train_x[:toy_train_size]
+        # test_x = test_x[:toy_test_size]
 
         # normalize
-        train_min = train_x.min(0)
-        train_max = train_x.max(0)
+        train_min = np.minimum(train_x.min(0), test_x.min(0))
+        train_max = np.maximum(train_x.max(0), test_x.max(0))
+        # log_scaler = np.sum(-np.log(train_max - train_min))
         train_x = normalize_01(train_x, train_min, train_max)
         test_x = normalize_01(test_x, train_min, train_max)
 
@@ -200,8 +201,8 @@ def fetch_dataloaders(dataset_name, batch_size, device, toy_train_size=25000, to
         test_y = dataset.tst.y.astype(np.float32)
 
         # normalize
-        train_min = train_x.min(0)
-        train_max = train_x.max(0)
+        train_min = np.minimum(train_x.min(0), test_x.min(0))
+        train_max = np.maximum(train_x.max(0), test_x.max(0))
         train_x = normalize_01(train_x, train_min, train_max)
         test_x = normalize_01(test_x, train_min, train_max)
 
@@ -221,8 +222,8 @@ def fetch_dataloaders(dataset_name, batch_size, device, toy_train_size=25000, to
         test_x = test_toy_dataset.x.astype(np.float32)
 
         # normalize
-        train_min = train_x.min(0)
-        train_max = train_x.max(0)
+        train_min = np.minimum(train_x.min(0), test_x.min(0))
+        train_max = np.maximum(train_x.max(0), test_x.max(0))
         train_x = normalize_01(train_x, train_min, train_max)
         test_x = normalize_01(test_x, train_min, train_max)
 
@@ -243,8 +244,8 @@ def fetch_dataloaders(dataset_name, batch_size, device, toy_train_size=25000, to
         test_x = np.array(test_toy_dataset.x).astype(np.float32)
 
         # normalize
-        train_min = train_x.min(0)
-        train_max = train_x.max(0)
+        train_min = np.minimum(train_x.min(0), test_x.min(0))
+        train_max = np.maximum(train_x.max(0), test_x.max(0))
         train_x = normalize_01(train_x, train_min, train_max)
         test_x = normalize_01(test_x, train_min, train_max)
 
