@@ -12,6 +12,17 @@ flow_steps = [1,2,3]
 epochs = [500]
 lr = [1e-3]
 
+# EXTENSIVE
+# train_size = [30000]
+# test_size = [5000]
+# batch_size = [256]
+# hidden_dim = [32]
+# hidden_layers = [4]
+# tess_size = [32,64]
+# flow_steps = [2,4,6,8,10]
+# epochs = [1000]
+# lr = [3e-4]
+
 # TEST EXAMPLE
 # hidden_dim = [1]
 # hidden_layers = [0]
