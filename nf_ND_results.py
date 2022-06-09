@@ -6,18 +6,21 @@ import pandas as pd
 import torch
 
 datasets = ["SCURVE", "SWISSROLL", "POWER", "MNIST", "MINIBOONE", "HEPMASS", "GAS", "BSDS300"]
+datasets = ["POWER"]
+datasets = ["SCURVE", "POWER", "MINIBOONE", "HEPMASS", "GAS", "BSDS300"]
 
 folder = "resultsND"
 results = []
 for dataset in datasets:
     runs = os.listdir(os.path.join(folder, dataset))
-
+    
     for run in runs:
+        # print(dataset)
         path = os.path.join(folder, dataset, run)
 
         # if "loss.pdf" not in os.listdir(path):
         if "epoch_best.pth" not in os.listdir(path):
-            print("Bad run " + str(run))
+            print(f"{dataset} bad run {run}")
             continue
         
         with open(os.path.join(path, 'config.json'), 'r') as fp:

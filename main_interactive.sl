@@ -17,7 +17,9 @@ python nf_1D_args.py  --folder results1D --dataset UNIFORM --train-size 5000 --t
 
 python nf_2D_args.py  --folder results2D --dataset MOONS --train-size 5000 --test-size 2000  --batch-size 256 --hidden-dim 5 --hidden-layers 1 --tess-size 4 --flow-steps 1 --epochs 500 --lr 0.0005 
 
-python nf_ND_args.py  --folder resultsND --dataset SCURVE --train-size 15000 --test-size 5000  --batch-size 256 --hidden-dim 8 --hidden-layers 1 --tess-size 4 --flow-steps 1 --epochs 1 --lr 0.001 
+python nf_ND_args.py  --folder resultsND --dataset POWER --train-size 30000 --test-size 5000  --batch-size 512 --hidden-dim 8 --hidden-layers 1 --tess-size 4 --flow-steps 2 --epochs 1000 --lr 0.0005 --model-type CL 
+
+python nf_ND_args.py  --folder resultsND --dataset POWER --train-size 30000 --test-size 5000  --batch-size 512 --hidden-dim 16 --hidden-layers 4 --tess-size 8 --flow-steps 2 --epochs 100 --lr 0.0005 --model-type CL 
 
 srun --pty --jobid $JOBID -w $NODEID /bin/bash
 srun --pty --jobid $JOBID bash
