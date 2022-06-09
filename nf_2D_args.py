@@ -73,6 +73,7 @@ class MLP(nn.Module):
             layers.append( nn.Linear(hidden_dim, hidden_dim) )
             layers.append( nn.ReLU() )
         layers.append( nn.Linear(hidden_dim, output_dim) )
+        layers.append( nn.Tanh() )
         self.net = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -146,6 +147,8 @@ class AffineTransform2D(nn.Module):
         x = (z - shift) * torch.exp(-log_scale)
         return x, -log_scale
 
+scale = 3.0
+
 class CPABTransform2D(nn.Module):
     def __init__(self, left, hidden_dim=10, hidden_layers=3, tess_size=10, zero_boundary=True, device="cpu"):
         super(CPABTransform2D, self).__init__()
@@ -172,7 +175,7 @@ class CPABTransform2D(nn.Module):
         # x = torch.clip(x, eps, 1-eps)
 
         x1, x2 = torch.index_select(x, 1, self.mask).chunk(chunks=2, dim=1)
-        theta = self.mlp(x1)
+        theta = self.mlp(x1)*scale
         # theta = theta * self.a + self.b
 
         z1 = x1
@@ -191,7 +194,7 @@ class CPABTransform2D(nn.Module):
 
     def backward(self, z, y=None):
         z1, z2 = torch.index_select(z, 1, self.mask).chunk(chunks=2, dim=1)
-        theta = self.mlp(z1)
+        theta = self.mlp(z1)*scale
         # theta = theta * self.a + self.b
 
         x1 = z1
