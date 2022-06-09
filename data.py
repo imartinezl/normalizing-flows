@@ -151,6 +151,9 @@ class MultipleGPUSampler():
 def normalize_01(x, a, b):
     return (x-a)/(b-a)
 
+def normalize_01_eps(x, a, b, eps=1e-7):
+    return ((x-a) + eps*(a+b-2*x))/(b-a)
+
 def denormalize_01(y, a, b):
     return a*(1-y) + b*y
 
@@ -178,9 +181,10 @@ def fetch_dataloaders(dataset_name, batch_size, device, toy_train_size=25000, to
         # normalize
         train_min = np.minimum(train_x.min(0), test_x.min(0))
         train_max = np.maximum(train_x.max(0), test_x.max(0))
-        # log_scaler = np.sum(-np.log(train_max - train_min))
-        train_x = normalize_01(train_x, train_min, train_max)
-        test_x = normalize_01(test_x, train_min, train_max)
+        log_scaler = np.sum(-np.log(train_max - train_min))
+        # print(train_min, train_max, log_scaler)
+        train_x = normalize_01_eps(train_x, train_min, train_max)
+        test_x = normalize_01_eps(test_x, train_min, train_max)
 
         # construct datasets/home/imartinez/.conda/envs/.venv/lib/python3.8/site-packages/torch/_utils.py
         train_dataset = TensorDataset(torch.from_numpy(train_x).to(device))
