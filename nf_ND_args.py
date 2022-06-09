@@ -20,17 +20,18 @@ from base import NormalizingFlow, train_and_eval, plot_loss
 import argparse
 parser = argparse.ArgumentParser(description='Normalizing flows ND')
 
-parser.add_argument('--folder', type=str, help='results folder')
+parser.add_argument('--folder', type=str, help='results folder', default="results")
 parser.add_argument('--dataset', type=str, help='dataset name')
-parser.add_argument('--train-size', type=int, help='train size')
-parser.add_argument('--test-size', type=int, help='test size')
-parser.add_argument('--batch-size', type=int, help='batch size')
-parser.add_argument('--hidden-dim', type=int, help='hidden dim')
-parser.add_argument('--hidden-layers', type=int, help='hidden layers')
-parser.add_argument('--tess-size', type=int, help='tessellation size')
-parser.add_argument('--flow-steps', type=int, help='flow steps')
-parser.add_argument('--epochs', type=int, help='epochs')
-parser.add_argument('--lr', type=float, help='learning rate')
+parser.add_argument('--train-size', type=int, help='train size', default=30000)
+parser.add_argument('--test-size', type=int, help='test size', default=3000)
+parser.add_argument('--batch-size', type=int, help='batch size', default=256)
+parser.add_argument('--hidden-dim', type=int, help='hidden dim', default=64)
+parser.add_argument('--hidden-layers', type=int, help='hidden layers', default=4)
+parser.add_argument('--tess-size', type=int, help='tessellation size', default=10)
+parser.add_argument('--flow-steps', type=int, help='flow steps', default=2)
+parser.add_argument('--epochs', type=int, help='epochs', default=100)
+parser.add_argument('--lr', type=float, help='learning rate', default=0.0005)
+parser.add_argument('--theta-max', type=float, help='theta max', default=1.0)
 parser.add_argument('--model-type', type=str, help='model type')
 
 # %% PATH
@@ -62,6 +63,7 @@ class MLP(nn.Module):
             layers.append( nn.Linear(hidden_dim, hidden_dim) )
             layers.append( nn.ReLU() )
         layers.append( nn.Linear(hidden_dim, output_dim) )
+        layers.append( nn.Tanh() )
         self.net = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -246,6 +248,7 @@ class OneByOneConv(nn.Module):
         L = torch.tril(self.L, diagonal = -1) + torch.diag(torch.ones(self.dim)).to(self.L.device)
         U = torch.triu(self.U, diagonal = 1)
         z = x @ self.P @ L @ (U + torch.diag(self.S))
+        W = self.P @ L @ (U + torch.diag(self.S))
         log_det = torch.sum(torch.log(torch.abs(self.S)))
         log_det = torch.log(torch.abs(self.S))
         log_det = torch.broadcast_to(log_det, x.shape)
@@ -262,6 +265,36 @@ class OneByOneConv(nn.Module):
         log_det = -torch.log(torch.abs(self.S))
         log_det = torch.broadcast_to(log_det, x.shape)
         return x, log_det
+
+
+class RandPermutation(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.dim = dim
+        self._dim = 1
+        self.permutation = nn.Parameter(torch.randperm(dim), requires_grad=False)
+
+    @property
+    def inverse_permutation(self):
+        return torch.argsort(self.permutation)
+
+    @staticmethod
+    def _permute(inputs, permutation, dim):
+        if dim >= inputs.ndimension():
+            raise ValueError("No dimension {} in inputs.".format(dim))
+        if inputs.shape[dim] != len(permutation):
+            raise ValueError("Dimension {} in inputs must be of size {}.".format(dim, len(permutation)))
+        
+        batch_size = inputs.shape[0]
+        outputs = torch.index_select(inputs, dim, permutation)
+        log_det = torch.zeros_like(inputs)
+        return outputs, log_det
+
+    def forward(self, x, y=None):
+        return self._permute(x, self.permutation, self._dim)
+
+    def backward(self, z, y=None):
+        return self._permute(z, self.inverse_permutation, self._dim)
 
 
 
@@ -378,47 +411,88 @@ class NSF_CL(nn.Module):
 
 
 class CPAB_CL(nn.Module):
-    def __init__(self, dim, device, hidden_dim=10, hidden_layers=3, tess_size=10, zero_boundary=True):
+    def __init__(self, dim, device, hidden_dim=10, hidden_layers=3, tess_size=10, zero_boundary=True, theta_max=1.0):
 
         super(CPAB_CL, self).__init__()
 
         self.T = cpab.Cpab(tess_size, backend="pytorch", device=device, zero_boundary=zero_boundary, basis="svd")
         self.d = self.T.params.d
+        self.theta_max = theta_max
 
         self.dim = dim
         lower_dim = dim // 2
         upper_dim = dim - lower_dim
 
-        self.mlp = MLP(lower_dim, hidden_dim, hidden_layers, self.d*upper_dim)
+        # self.mlp = MLP(lower_dim, hidden_dim, hidden_layers, self.d*upper_dim)
+
+        self.lower_dim = lower_dim
+        self.upper_dim = upper_dim
+        self.layers = nn.ModuleList()
+        for i in range(self.upper_dim):
+            self.layers += [MLP(lower_dim, hidden_dim, hidden_layers, self.d)]
+
 
     def forward(self, x, y=None):
+        eps = 1e-7
+        x = torch.clip(x, eps, 1-eps)
+
         n = x.shape[0]
         x1, x2 = x[:,:self.dim // 2], x[:,self.dim // 2:]
 
-        theta = self.mlp(x1).reshape(-1, self.d)
-        z1 = x1
-        z2 = self.T.transform_grid(x2.reshape(-1,1), theta).reshape(n,-1)
-        z = torch.hstack([z1, z2])
+        # theta = self.mlp(x1).reshape(-1, self.d)
+        # z1 = x1
+        # z2 = self.T.transform_grid(x2.reshape(-1,1), theta).reshape(n,-1)
+        # z = torch.hstack([z1, z2])
 
-        dz_dx_1 = torch.ones_like(x1)
-        dz_dx_2 = self.T.gradient_space(x2.reshape(-1,1), theta).reshape(n,-1)
+        # dz_dx_1 = torch.ones_like(x1)
+        # dz_dx_2 = self.T.gradient_space(x2.reshape(-1,1), theta).reshape(n,-1)
+        # dz_dx = torch.hstack([dz_dx_1, dz_dx_2])
+        # log_dz_dx = dz_dx.log()
+
+        # test
+        z1, z2 = x1, torch.zeros_like(x2)
+        dz_dx_1, dz_dx_2 = torch.ones_like(x1), torch.ones_like(x2)
+        for i in range(self.upper_dim):
+            j = self.lower_dim + i
+            theta = self.layers[i](x1)*self.theta_max
+            z2[:,i] = self.T.transform_grid(x2[:,i].unsqueeze(1), theta).squeeze()
+            dz_dx_2[:,i] = self.T.gradient_space(x2[:,i].unsqueeze(1), theta).squeeze()
+
+        z = torch.hstack([z1, z2])
         dz_dx = torch.hstack([dz_dx_1, dz_dx_2])
         log_dz_dx = dz_dx.log()
 
         return z, log_dz_dx
 
     def backward(self, z, y=None):
+        eps = 1e-7
+        z = torch.clip(z, eps, 1-eps)
+
         n = z.shape[0]
         z1, z2 = z[:,:self.dim // 2], z[:,self.dim // 2:]
        
-        theta = self.mlp(z1).reshape(-1, self.d)
+        # theta = self.mlp(z1).reshape(-1, self.d)*self.theta_max
 
-        x1 = z1
-        x2 = self.T.transform_grid(z2.reshape(-1,1), -theta).reshape(n,-1)
+        # x1 = z1
+        # x2 = self.T.transform_grid(z2.reshape(-1,1), -theta).reshape(n,-1)
+        # x = torch.hstack([x1, x2])
+
+        # dx_dz_1 = torch.ones_like(z1)
+        # dx_dz_2 = self.T.gradient_space(z2.reshape(-1,1), -theta).reshape(n,-1)
+        # dx_dz = torch.hstack([dx_dz_1, dx_dz_2])
+        # log_dx_dz = dx_dz.log()
+
+
+        # test
+        x1, x2 = z1, torch.zeros_like(z2)
+        dx_dz_1, dx_dz_2 = torch.ones_like(z1), torch.ones_like(z2)
+        for i in range(self.upper_dim):
+            j = self.lower_dim + i
+            theta = self.layers[i](x1)*self.theta_max
+            x2[:,i] = self.T.transform_grid(z2[:,i].unsqueeze(1), -theta).squeeze()
+            dx_dz_2[:,i] = self.T.gradient_space(z2[:,i].unsqueeze(1), -theta).squeeze()
+
         x = torch.hstack([x1, x2])
-
-        dx_dz_1 = torch.ones_like(z1)
-        dx_dz_2 = self.T.gradient_space(z2.reshape(-1,1), -theta).reshape(n,-1)
         dx_dz = torch.hstack([dx_dz_1, dx_dz_2])
         log_dx_dz = dx_dz.log()
 
@@ -426,16 +500,17 @@ class CPAB_CL(nn.Module):
 
 
 class CPAB_AR(nn.Module):
-    def __init__(self, dim, device, hidden_dim=10, hidden_layers=3, tess_size=10, zero_boundary=True):
+    def __init__(self, dim, device, hidden_dim=10, hidden_layers=3, tess_size=10, zero_boundary=True, theta_max=1.0):
 
         super(CPAB_AR, self).__init__()
 
         self.T = cpab.Cpab(tess_size, backend="pytorch", device=device, zero_boundary=zero_boundary, basis="svd")
         self.d = self.T.params.d
+        self.theta_max = theta_max
 
         self.dim = dim
 
-        self.init_param = nn.Parameter(torch.Tensor(self.d), requires_grad=True)
+        self.init_param = nn.Parameter(torch.zeros(self.d), requires_grad=True)
         self.layers = nn.ModuleList()
         for i in range(1, dim):
             self.layers += [MLP(i, hidden_dim, hidden_layers, self.d)]
@@ -448,12 +523,13 @@ class CPAB_AR(nn.Module):
         for i in range(self.dim):
 
             if i == 0:
-                theta = self.init_param.expand(x.shape[0], self.d).contiguous()
+                theta = self.init_param.expand(x.shape[0], self.d).contiguous()*self.theta_max
             else:
-                theta = self.layers[i - 1](x[:, :i])
+                theta = self.layers[i - 1](x[:, :i])*self.theta_max
 
             z[:,i] = self.T.transform_grid(x[:,i].unsqueeze(1), theta).squeeze()
-            log_dz_dx[:, i] = self.T.gradient_space(x[:,i].unsqueeze(1), theta).squeeze()
+            log_dz_dx[:, i] = self.T.gradient_space(x[:,i].unsqueeze(1), theta).squeeze().log()
+
         return z, log_dz_dx
 
     def backward(self, z, y=None):
@@ -463,12 +539,12 @@ class CPAB_AR(nn.Module):
 
         for i in range(self.dim):
             if i == 0:
-                theta = self.init_param.expand(x.shape[0], self.d).contiguous()
+                theta = self.init_param.expand(x.shape[0], self.d).contiguous()*self.theta_max
             else:
-                theta = self.layers[i - 1](x[:, :i])
+                theta = self.layers[i - 1](x[:, :i])*self.theta_max
 
             x[:, i] = self.T.transform_grid(z[:,i].unsqueeze(1), -theta).squeeze()
-            log_dx_dz[:, i] = self.T.gradient_space(z[:,i].unsqueeze(1), -theta).squeeze()
+            log_dx_dz[:, i] = self.T.gradient_space(z[:,i].unsqueeze(1), -theta).squeeze().log()
         return x, log_dx_dz
 
 
@@ -569,18 +645,18 @@ cpab_device = "gpu" if device.type == "cuda" else "cpu"
 
 transforms = []
 for i in range(args.flow_steps):
-    kwargs = {'hidden_dim':args.hidden_dim, 'hidden_layers':args.hidden_layers, 'tess_size':args.tess_size, 'zero_boundary':True, 'device':cpab_device}
+    kwargs = {'hidden_dim':args.hidden_dim, 'hidden_layers':args.hidden_layers, 'tess_size':args.tess_size, 'zero_boundary':True, 'device':cpab_device, 'theta_max': args.theta_max}
     # kwargs = {'hidden_dim':args.hidden_dim}
     # m = RealNVP(d, **kwargs)
     if args.model_type == "CL":
         m = CPAB_CL(d, **kwargs)
         transforms.append(m)
-        m = OneByOneConv(d)
+        m = RandPermutation(d)
         transforms.append(m)
     elif args.model_type == "AR":
         m = CPAB_AR(d, **kwargs)
         transforms.append(m)
-        m = OneByOneConv(d)
+        m = RandPermutation(d)
         transforms.append(m)
 transforms.append(Constraint())
 
