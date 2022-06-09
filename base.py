@@ -43,6 +43,8 @@ def train(model, train_loader, optimizer, target_distribution):
         loss = -torch.mean(log_prob(model, target_distribution, z, log_dz_dx)) # MEAN OR SUM?
         loss.backward()
         optimizer.step()
+
+        # nn.utils.clip_grad_value_(model.parameters(), clip_value=1)
     return model
 
 import math
@@ -72,45 +74,46 @@ def eval_loss(model, data_loader, target_distribution, log_scaler=0.0):
 def train_and_eval(model, epochs, lr, train_loader, test_loader, target_distribution, path):
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    log_scaler = np.sum(-np.log(train_loader.dataset.train_max - train_loader.dataset.train_min))
+    eps = 1e-7
+    log_scaler = np.sum(-np.log((train_loader.dataset.train_max - train_loader.dataset.train_min)/(1-2*eps)))
 
     train_losses, test_losses = [], []
-    # with tqdm(total=epochs) as pbar:
-    for epoch in range(epochs):
-        model = train(model, train_loader, optimizer, target_distribution)
-        train_loss, train_logprob_mean, train_logprob_std = eval_loss(model, train_loader, target_distribution, log_scaler)
-        test_loss, test_logprob_mean, test_logprob_std = eval_loss(model, test_loader, target_distribution, log_scaler)
-        train_losses.append(train_loss)
-        test_losses.append(test_loss)
+    with tqdm(total=epochs) as pbar:
+        for epoch in range(epochs):
+            model = train(model, train_loader, optimizer, target_distribution)
+            train_loss, train_logprob_mean, train_logprob_std = eval_loss(model, train_loader, target_distribution, log_scaler)
+            test_loss, test_logprob_mean, test_logprob_std = eval_loss(model, test_loader, target_distribution, log_scaler)
+            train_losses.append(train_loss)
+            test_losses.append(test_loss)
 
-        if epoch % 10 == 0:
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'train_loss': train_loss,
-                'train_logprob_mean': train_logprob_mean,
-                'train_logprob_std': train_logprob_std,
-                'test_loss': test_loss,
-                'test_logprob_mean': test_logprob_mean,
-                'test_logprob_std': test_logprob_std,
-            }, os.path.join(path, "epoch_{}.pth".format(epoch)))
-        if test_loss <= min(test_losses):
-                torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'train_loss': train_loss,
-                'train_logprob_mean': train_logprob_mean,
-                'train_logprob_std': train_logprob_std,
-                'test_loss': test_loss,
-                'test_logprob_mean': test_logprob_mean,
-                'test_logprob_std': test_logprob_std,
-            }, os.path.join(path, "epoch_best.pth"))
-        # # pbar.set_description(f"Loss: train {train_loss:.4f}; test {test_loss:.4f}")
-        # pbar.set_description(f"Loglikelihood: train {train_logprob_mean:.4f}; test {test_logprob_mean:.4f}")
-        # pbar.update()
-    # pbar.close()
+            # if epoch % 10 == 0:
+            #     torch.save({
+            #         'epoch': epoch,
+            #         'model_state_dict': model.state_dict(),
+            #         'optimizer_state_dict': optimizer.state_dict(),
+            #         'train_loss': train_loss,
+            #         'train_logprob_mean': train_logprob_mean,
+            #         'train_logprob_std': train_logprob_std,
+            #         'test_loss': test_loss,
+            #         'test_logprob_mean': test_logprob_mean,
+            #         'test_logprob_std': test_logprob_std,
+            #     }, os.path.join(path, "epoch_{}.pth".format(epoch)))
+            if test_loss <= min(test_losses):
+                    torch.save({
+                    'epoch': epoch,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'train_loss': train_loss,
+                    'train_logprob_mean': train_logprob_mean,
+                    'train_logprob_std': train_logprob_std,
+                    'test_loss': test_loss,
+                    'test_logprob_mean': test_logprob_mean,
+                    'test_logprob_std': test_logprob_std,
+                }, os.path.join(path, "epoch_best.pth"))
+            # pbar.set_description(f"Loss: train {train_loss:.4f}; test {test_loss:.4f}")
+            pbar.set_description(f"Loglikelihood: train {train_logprob_mean:.4f}; test {test_logprob_mean:.4f}")
+            pbar.update()
+        pbar.close()
     return model, train_losses, test_losses
 
 def plot_loss(train_losses, test_losses, ax=None):
