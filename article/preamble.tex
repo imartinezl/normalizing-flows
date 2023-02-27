@@ -1,0 +1,374 @@
+\RequirePackage{setspace}
+\usepackage{authblk}
+
+% ******************************************************************************
+% ****************************** Custom Margin *********************************
+
+% Add `custommargin' in the document class options to use this section
+% Set {innerside margin / outerside margin / topmargin / bottom margin}  and
+% other page dimensions
+% \ifsetCustomMargin
+\RequirePackage[left=20mm,right=20mm,top=30mm,bottom=30mm]{geometry}
+%   \setFancyHdr % To apply fancy header after geometry package is loaded
+% \fi
+
+% Add spaces between paragraphs
+%\setlength{\parskip}{0.5em}
+\setlength{\parskip}{6pt}
+\setlength{\parindent}{0pt}
+
+% Ragged bottom avoids extra whitespaces between paragraphs
+\raggedbottom
+% To remove the excess top spacing for enumeration, list and description
+\usepackage{enumitem}
+\setlist[enumerate,itemize,description]{topsep=0em,itemsep=0em}
+
+% *****************************************************************************
+% ******************* Fonts (like different typewriter fonts etc.)*************
+
+% Add `customfont' in the document class option to use this section
+
+
+
+% \ifsetCustomFont
+  % Set your custom font here and use `customfont' in options. Leave empty to
+  % load computer modern font (default LaTeX font).
+  %\RequirePackage{helvet}
+  \RequirePackage{times}
+
+  % For use with XeLaTeX
+  %  \setmainfont[
+  %    Path              = ./libertine/opentype/,
+  %    Extension         = .otf,
+  %    UprightFont = LinLibertine_R,
+  %    BoldFont = LinLibertine_RZ, % Linux Libertine O Regular Semibold
+  %    ItalicFont = LinLibertine_RI,
+  %    BoldItalicFont = LinLibertine_RZI, % Linux Libertine O Regular Semibold Italic
+  %  ]
+  %  {libertine}
+  %  % load font from system font
+  %  \newfontfamily\libertinesystemfont{Linux Libertine O}
+% \fi
+
+% *****************************************************************************
+% **************************** Custom Packages ********************************
+\usepackage{comment}
+% \usepackage{pdfcrypt}
+% \pdfcryptsetup{print=false,set}
+\usepackage{minitoc}
+\usepackage{pdflscape}
+
+
+% ************************* Algorithms and Pseudocode **************************
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+
+% For theorems and such
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{pifont}
+\usepackage{blkarray}
+\usepackage{bbold}
+
+
+% *************************** Graphics and figures *****************************
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+\usepackage{graphicx}
+% \usepackage{subfigure}
+\usepackage{subcaption}
+% \usepackage{minted}
+
+
+\usepackage[dvipsnames, table]{xcolor}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+\usepackage{mathtools}
+\usepackage[most]{tcolorbox}
+\usepgfplotslibrary{patchplots}
+\usetikzlibrary{arrows,arrows.meta,calc,decorations.pathreplacing,fit,matrix,patterns,positioning,shadows,shapes.misc,shapes.geometric,shapes.multipart}
+%\usepackage{dblfloatfix}
+
+%\usepackage{svg}
+%\usepackage{rotating}
+\usepackage{wrapfig}
+\usepackage{lineno}
+% \linenumbers % COMMENT
+
+% \usepackage{showframe} % COMMENT
+
+% Uncomment the following two lines to force Latex to place the figure.
+% Use [H] when including graphics. Note 'H' instead of 'h'
+%\usepackage{float}
+%\restylefloat{figure}
+
+% Subcaption package is also available in the sty folder you can use that by
+% uncommenting the following line
+% This is for people stuck with older versions of texlive
+%\usepackage{sty/caption/subcaption}
+%\usepackage{subcaption}
+
+% ********************Captions and Hyperreferencing / URL **********************
+
+% Captions: This makes captions of figures use a boldfaced small font.
+%\RequirePackage[small,bf]{caption}
+
+\RequirePackage[labelsep=period, tableposition=top, labelfont={it}]{caption}
+% \renewcommand{\figurename}{Fig.} %to support older versions of captions.sty
+
+\definecolor{mydarkblue}{rgb}{0,0.08,0.45}
+\usepackage{hyperref}
+\hypersetup{
+  linktoc=all,
+  colorlinks=true,
+  linkcolor=mydarkblue,
+  citecolor=mydarkblue,
+  filecolor=mydarkblue,
+  urlcolor=mydarkblue,
+  % hidelinks=true,
+}
+
+
+% ********************************** Tables ************************************
+\usepackage{booktabs} % For professional looking tables
+\usepackage{multirow}
+
+%\usepackage{multicol}
+\usepackage{longtable}
+%\usepackage{tabularx}
+
+
+% *********************************** SI Units *********************************
+\usepackage{siunitx} % use this package module for SI units
+
+
+% ******************************* Line Spacing *********************************
+
+% Choose linespacing as appropriate. Default is one-half line spacing as per the
+% University guidelines
+
+% \doublespacing
+% \onehalfspacing
+% \singlespacing
+\setstretch{1.15}
+
+
+% ************************ Formatting / Footnote *******************************
+
+% Don't break enumeration (etc.) across pages in an ugly manner (default 10000)
+%\clubpenalty=500
+%\widowpenalty=500
+
+%\usepackage[perpage]{footmisc} %Range of footnote options
+
+
+% *****************************************************************************
+% *************************** Bibliography  and References ********************
+
+\usepackage[capitalize,noabbrev]{cleveref} %Referencing without need to explicitly state fig /table
+
+% Add `custombib' in the document class option to use this section
+% \ifuseCustomBib
+  \RequirePackage{natbib} % CustomBib
+  \setcitestyle{authoryear,round,citesep={;},aysep={,},yysep={;}}
+  \renewcommand{\cite}[1]{\citep{#1}}
+  % \RequirePackage[square, sort, numbers, authoryear]{natbib} % CustomBib
+
+% If you would like to use biblatex for your reference management, as opposed to the default `natbibpackage` pass the 
+% option `custombib` in the document class. Comment out the previous line to make sure you don't load the natbib package. Uncomment the following lines and specify the location of references.bib file
+
+%\RequirePackage[backend=biber, style=numeric-comp, citestyle=numeric, sorting=nty, natbib=true]{biblatex}
+%\addbibresource{References/references} %Location of references.bib only for biblatex, Do not omit the .bib extension from the filename.
+
+% \fi
+
+% changes the default name `Bibliography` -> `References'
+% \renewcommand{\bibname}{References}
+
+
+% ******************************************************************************
+% ************************* User Defined Commands ******************************
+% ******************************************************************************
+
+% *********** To change the name of Table of Contents / LOF and LOT ************
+
+%\renewcommand{\contentsname}{My Table of Contents}
+%\renewcommand{\listfigurename}{My List of Figures}
+%\renewcommand{\listtablename}{My List of Tables}
+
+
+% ********************** TOC depth and numbering depth *************************
+
+% \setcounter{secnumdepth}{3}
+% \setcounter{tocdepth}{1}
+% \setcounter{minitocdepth}{2}
+
+
+% ******************************* Nomenclature *********************************
+
+% To change the name of the Nomenclature section, uncomment the following line
+
+%\renewcommand{\nomname}{Symbols}
+
+
+% ********************************* Appendix ***********************************
+
+% The default value of both \appendixtocname and \appendixpagename is `Appendices'. These names can all be changed via:
+
+\renewcommand{\appendixname}{Appendix}
+% \renewcommand{\appendixpagename}{}
+% \renewcommand{\appendixtocname}{}
+
+% *********************** Configure Draft Mode **********************************
+
+% Uncomment to disable figures in `draft'
+%\setkeys{Gin}{draft=true}  % set draft to false to enable figures in `draft'
+
+% These options are active only during the draft mode
+% Default text is "Draft"
+%\SetDraftText{DRAFT}
+
+% Default Watermark location is top. Location (top/bottom)
+%\SetDraftWMPosition{bottom}
+
+% Draft Version - default is v1.0
+%\SetDraftVersion{v1.0}
+
+% Draft Text grayscale value (should be between 0-black and 1-white)
+% Default value is 0.75
+%\SetDraftGrayScale{0.8}
+
+
+% ******************************** Todo Notes ********************************
+%% Uncomment the following lines to have todonotes.
+
+%\ifsetDraft
+%	\usepackage[colorinlistoftodos]{todonotes}
+%	\newcommand{\mynote}[1]{\todo[author=kks32,size=\small,inline,color=green!40]{#1}}
+%\else
+%	\newcommand{\mynote}[1]{}
+%	\newcommand{\listoftodos}{}
+%\fi
+
+% Example todo: \mynote{Hey! I have a note}
+
+% ******************************** Highlighting Changes ********************************
+%% Uncomment the following lines to be able to highlight text/modifications.
+%\ifsetDraft
+%  \usepackage{color, soul}
+%  \newcommand{\hlc}[2][yellow]{{\sethlcolor{#1} \hl{#2}}}
+%  \newcommand{\hlfix}[2]{\texthl{#1}\todo{#2}}
+%\else
+%  \newcommand{\hlc}[2]{}
+%  \newcommand{\hlfix}[2]{}
+%\fi
+
+% Example highlight 1: \hlc{Text to be highlighted}
+% Example highlight 2: \hlc[green]{Text to be highlighted in green colour}
+% Example highlight 3: \hlfix{Original Text}{Fixed Text}
+
+
+% ******************************** Custom Commands ********************************
+
+\newsavebox\CBox
+\def\textBF#1{\sbox\CBox{#1}\resizebox{\wd\CBox}{\ht\CBox}{\textbf{#1}}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\median}{median}
+
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{D}[1]{>{\centering\let\newline\\\arraybackslash}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+
+\def\sqPDF#1#2{0 0 m #1 0 l #1 #1 l 0 #1 l h}
+\def\trianPDF#1#2{0 0 m #1 0 l #2 4.5 l h}
+\def\uptrianPDF#1#2{#2 0 m #1 4.5 l 0 4.5 l h}
+\def\circPDF#1#2{#1 0 0 #1 #2 #2 cm .1 w .5 0 m
+   .5 .276 .276 .5 0 .5 c -.276 .5 -.5 .276 -.5 0 c
+   -.5 -.276 -.276 -.5 0 -.5 c .276 -.5 .5 -.276 .5 0 c h}
+\def\diaPDF#1#2{#2 0 m #1 #2 l #2 #1 l 0 #2 l h}
+
+\def\credCOLOR   {.54 .14 0}
+\def\cblueCOLOR  {.06 .3 .54}
+\def\cgreenCOLOR {0 .54 0}
+
+\def\genbox#1#2#3#4#5#6{% #1=0/1, #2=color, #3=shape, #4=raise, #5=width, #6=width/2
+    \leavevmode\raise#4bp\hbox to#5bp{\vrule height#5bp depth0bp width0bp
+    \pdfliteral{q .5 w \csname #2COLOR\endcsname\space RG
+                       \csname #3PDF\endcsname{#5}{#6} S Q
+             \ifx1#1 q \csname #2COLOR\endcsname\space rg 
+                       \csname #3PDF\endcsname{#5}{#6} f Q\fi}\hss}}
+
+                                    % shape     raise width  width/2
+\def\sqbox      #1#2{\genbox{#1}{#2}  {sq}       {0}   {4.5}  {2.25}}
+\def\trianbox   #1#2{\genbox{#1}{#2}  {trian}    {0.5}   {5}    {2.5}}
+\def\uptrianbox #1#2{\genbox{#1}{#2}  {uptrian}  {0.5}   {5}    {2.5}}
+\def\circbox    #1#2{\genbox{#1}{#2}  {circ}     {0}   {5}    {2.5}}
+\def\diabox     #1#2{\genbox{#1}{#2}  {dia}      {-.5} {6}    {3}}
+
+\def\Put(#1,#2)#3{\leavevmode\makebox(0,0){\put(#1,#2){#3}}}
+
+% ******************************** Theorems ********************************
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{example}[theorem]{Example}
+\newtheorem*{notation*}{Notation}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{definition_plain}[theorem]{Definition}
+
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\complexes}{\mathbb{C}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\prob}{\mathbb{P}}
+\newcommand{\expect}{\mathbb{E}}
+\newcommand{\cov}{\mathrm{Cov}}
+\newcommand{\bigO}[1]{\mathcal{O}(#1)}
+\newcommand{\eval}[2]{\left.#1\right|_{#2}}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\set}[2]{\left\{#1\,\left\vert\,#2\vphantom{#1}\right\}\right.}
+\newcommand{\indicator}[1]{\mathbb{1}_{#1}}
+\newcommand{\softmax}{\mathrm{softmax}}
+\newcommand{\normal}[2]{\mathcal{N}\left(#1, #2\right)}
+\newcommand{\uniform}[2]{\mathrm{Uniform}[#1, #2]}
+\newcommand{\sigmoid}{\mathrm{sigmoid}}
+\newcommand{\sig}{\mathrm{sig}}
+\newcommand{\logsig}{\mathrm{logsig}}
+\newcommand{\Tau}{\mathcal{T}}
+\newcommand{\adj}{\Gamma}
+\newcommand{\trace}{\mathrm{tr}}
+\newcommand{\diag}{\mathrm{diag}}
+\newcommand{\kl}[2]{\mathrm{KL}\left(#1\middle\|#2\right)}
+\newcommand{\restr}[2]{{\left.\kern-\nulldelimiterspace #1 \right|_{#2}}}
+\newcommand{\eye}[1]{I_{#1 \times #1}}
+\newcommand{\affine}{L_b}
+\newcommand{\yesno}{$\sim$}
+\newcommand{\tssize}{\omega}
+\newcommand{\floor}[1]{\left\lfloor#1\right\rfloor}
+\newcommand{\realpart}{\mathrm{Re}}
+
+\newcommand{\nicefrac}[2]{\tfrac{#1}{#2}}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+\newcommand{\mapsfrom}{\mathrel{\reflectbox{\ensuremath{\mapsto}}}}
+
+\newcommand\x{0.48}
+\newcommand\y{0.48}

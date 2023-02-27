@@ -1,0 +1,359 @@
+@article{Altieri2015,
+   abstract = {We present a variational inference method defined through gradient ascent on the likelihood function. This method can be used to improve existing posterior ap-proximations or as part of a recognition network in variational autoencoders. De-spite its simplicity, it proves to be competitive on standard benchmarks.},
+   author = {Nicholas Altieri and David Duvenaud},
+   journal = {NIPS Workshop},
+   pages = {3-6},
+   title = {Variational Inference with Gradient Flows},
+   volume = {37},
+   year = {2015},
+}
+@article{Jaini2019,
+   abstract = {Triangular map is a recent construct in probability theory that allows one to transform any source probability density function to any target density function. Based on triangular maps, we propose a general framework for high-dimensional density estimation, by specifying one-dimensional transformations (equivalently conditional densities) and appropriate conditioner networks. This framework (a) reveals the commonalities and differences of existing autoregressive and flow based methods, (b) allows a unified understanding of the limitations and representation power of these recent approaches and, (c) motivates us to uncover a new Sum-of-Squares (SOS) flow that is interpretable, universal, and easy to train. We perform several synthetic experiments on various density geometries to demonstrate the benefits (and shortcomings) of such transformations. SOS flows achieve competitive results in simulations and several real-world datasets.},
+   author = {Priyank Jaini and Kira A. Selby and Yaoliang Yu},
+   isbn = {9781510886988},
+   journal = {36th International Conference on Machine Learning, ICML 2019},
+   pages = {5335-5344},
+   title = {Sum-of-squares polynomial flow},
+   volume = {2019-June},
+   year = {2019},
+}
+@article{Kobyzev2020,
+   abstract = {Normalizing Flows are generative models which produce tractable distributions where both sampling and density evaluation can be efficient and exact. The goal of this survey article is to give a coherent and comprehensive review of the literature around the construction and use of Normalizing Flows for distribution learning. We aim to provide context and explanation of the models, review current state-of-the-art literature, and identify open questions and promising future directions.},
+   author = {Ivan Kobyzev and Simon Prince and Marcus Brubaker},
+   doi = {10.1109/tpami.2020.2992934},
+   issn = {0162-8828},
+   journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+   pages = {1-1},
+   title = {Normalizing Flows: An Introduction and Review of Current Methods},
+   year = {2020},
+}
+@article{Papamakarios2021,
+   abstract = {Normalizing flows provide a general mechanism for defining expressive probability distributions, only requiring the specification of a (usually simple) base distribution and a series of bijective transformations. There has been much recent work on normalizing flows, ranging from improving their expressive power to expanding their application. We believe the field has now matured and is in need of a unified perspective. In this review, we attempt to provide such a perspective by describing flows through the lens of probabilistic modeling and inference. We place special emphasis on the fundamental principles of flow design, and discuss foundational topics such as expressive power and computational trade-offs. We also broaden the conceptual framing of flows by relating them to more general probability transformations. Lastly, we summarize the use of flows for tasks such as generative modeling, approximate inference, and supervised learning.},
+   author = {George Papamakarios and Eric Nalisnick and Danilo Jimenez Rezende and Shakir Mohamed and Balaji Lakshminarayanan},
+   issn = {15337928},
+   journal = {Journal of Machine Learning Research},
+   keywords = {Generative models,Invertible neural networks,Normalizing flows,Probabilistic inference,Probabilistic modeling},
+   pages = {1-64},
+   title = {Normalizing flows for probabilistic modeling and inference},
+   volume = {22},
+   year = {2021},
+}
+@article{Schmidt2019,
+   abstract = {Flow-based deep generative models learn data distributions by transforming a simple base distribution into a complex distribution via a set of invertible transformations. Due to the invertibility, such models can score unseen data samples by computing their exact likelihood under the learned distribution. This makes flow-based models a perfect tool for novelty detection, an anomaly detection technique where unseen data samples are classified as normal or abnormal by scoring them against a learned model of normal data. We show that normalizing flows can be used as novelty detectors in time series. Two flow-based models, Masked Autoregressive Flows and Free-form Jacobian of Reversible Dynamics restricted by autoregressive MADE networks, are tested on synthetic data and motor current data from an industrial machine and achieve good results, outperforming a conventional novelty detection method, the Local Outlier Factor.},
+   author = {Maximilian Schmidt and Marko Simic},
+   issue = {Icml},
+   title = {Normalizing flows for novelty detection in industrial time series data},
+   url = {http://arxiv.org/abs/1906.06904},
+   year = {2019},
+}
+@article{Xiao2020,
+   abstract = {Generative flows models enjoy the properties of tractable exact likelihood and efficient sampling, which are composed of a sequence of invertible functions. In this paper, we incorporate matrix exponential into generative flows. Matrix exponential is a map from matrices to invertible matrices, this property is suitable for generative flows. Based on matrix exponential, we propose matrix exponential coupling layers that are a general case of affine coupling layers and matrix exponential invertible 1 × 1 convolutions that do not collapse during training. And we modify the networks architecture to make training stable and significantly speed up the training process. Our experiments show that our model achieves great performance on density estimation amongst generative flows models.},
+   author = {Changyi Xiao and Ligang Liu},
+   isbn = {9781713821120},
+   journal = {37th International Conference on Machine Learning, ICML 2020},
+   pages = {10383-10392},
+   title = {Generative flows with matrix exponential},
+   volume = {PartF16814},
+   year = {2020},
+}
+@article{Grathwohl2019,
+   abstract = {Reversible generative models map points from a simple distribution to a complex distribution through an easily invertible neural network. Likelihood-based training of these models requires restricting their architectures to allow cheap computation of Jacobian determinants. Alternatively, the Jacobian trace can be used if the transformation is specified by an ordinary differential equation. In this paper, we use Hutchinson's trace estimator to give a scalable unbiased estimate of the log-density. The result is a continuous-time invertible generative model with unbiased density estimation and one-pass sampling, while allowing unrestricted neural network architectures. We demonstrate our approach on high-dimensional density estimation, image generation, and variational inference, improving the state-of-the-art among exact likelihood methods with efficient sampling.},
+   author = {Will Grathwohl and Ricky T.Q. Chen and Jesse Bettencourt and Ilya Sutskever and David Duvenaud},
+   journal = {7th International Conference on Learning Representations, ICLR 2019},
+   pages = {1-13},
+   title = {Ffjord: Free-form continuous dynamics for scalable reversible generative models},
+   year = {2019},
+}
+@article{Salman2018,
+   abstract = {The Normalizing Flow (NF) models a general probability density by estimating an invertible transformation applied on samples drawn from a known distribution. We introduce a new type of NF, called Deep Diffeomorphic Normalizing Flow (DDNF). A diffeomorphic flow is an invertible function where both the function and its inverse are smooth. We construct the flow using an ordinary differential equation (ODE) governed by a time-varying smooth vector field. We use a neural network to parametrize the smooth vector field and a recursive neural network (RNN) for approximating the solution of the ODE. Each cell in the RNN is a residual network implementing one Euler integration step. The architecture of our flow enables efficient likelihood evaluation, straightforward flow inversion, and results in highly flexible density estimation. An end-to-end trained DDNF achieves competitive results with state-of-the-art methods on a suite of density estimation and variational inference tasks. Finally, our method brings concepts from Riemannian geometry that, we believe, can open a new research direction for neural density estimation.},
+   author = {Hadi Salman and Payman Yadollahpour and Tom Fletcher and Kayhan Batmanghelich},
+   issue = {1},
+   title = {Deep Diffeomorphic Normalizing Flows},
+   url = {http://arxiv.org/abs/1810.03256},
+   year = {2018},
+   journal = {arXiv Preprint}
+}
+@inproceedings{huang2018neural,
+  title={Neural autoregressive flows},
+  author={Huang, Chin-Wei and Krueger, David and Lacoste, Alexandre and Courville, Aaron},
+  booktitle={International Conference on Machine Learning},
+  pages={2078--2087},
+  year={2018},
+  organization={PMLR}
+}
+@inproceedings{germain2015made,
+  title={Made: Masked autoencoder for distribution estimation},
+  author={Germain, Mathieu and Gregor, Karol and Murray, Iain and Larochelle, Hugo},
+  booktitle={International conference on machine learning},
+  pages={881--889},
+  year={2015},
+  organization={PMLR}
+}
+
+@article{papamakarios2017masked,
+  title={Masked autoregressive flow for density estimation},
+  author={Papamakarios, George and Pavlakou, Theo and Murray, Iain},
+  journal={Advances in neural information processing systems},
+  volume={30},
+  year={2017}
+}
+
+@article{kingma2016improved,
+  title={Improved variational inference with inverse autoregressive flow},
+  author={Kingma, Durk P and Salimans, Tim and Jozefowicz, Rafal and Chen, Xi and Sutskever, Ilya and Welling, Max},
+  journal={Advances in neural information processing systems},
+  volume={29},
+  year={2016}
+}
+
+@article{kingma2018glow,
+  title={Glow: Generative flow with invertible 1x1 convolutions},
+  author={Kingma, Durk P and Dhariwal, Prafulla},
+  journal={Advances in neural information processing systems},
+  volume={31},
+  year={2018}
+}
+
+@inproceedings{oord2018parallel,
+  title={Parallel wavenet: Fast high-fidelity speech synthesis},
+  author={Oord, Aaron and Li, Yazhe and Babuschkin, Igor and Simonyan, Karen and Vinyals, Oriol and Kavukcuoglu, Koray and Driessche, George and Lockhart, Edward and Cobo, Luis and Stimberg, Florian and others},
+  booktitle={International conference on machine learning},
+  pages={3918--3926},
+  year={2018},
+  organization={PMLR}
+}
+
+@article{dinh2016density,
+  title={Density estimation using real nvp},
+  author={Dinh, Laurent and Sohl-Dickstein, Jascha and Bengio, Samy},
+  journal={arXiv preprint arXiv:1605.08803},
+  year={2016}
+}
+
+@inproceedings{chang2018reversible,
+  title={Reversible architectures for arbitrarily deep residual neural networks},
+  author={Chang, Bo and Meng, Lili and Haber, Eldad and Ruthotto, Lars and Begert, David and Holtham, Elliot},
+  booktitle={Proceedings of the AAAI conference on artificial intelligence},
+  volume={32},
+  year={2018}
+}
+
+@inproceedings{behrmann2019invertible,
+  title={Invertible residual networks},
+  author={Behrmann, Jens and Grathwohl, Will and Chen, Ricky TQ and Duvenaud, David and Jacobsen, J{\"o}rn-Henrik},
+  booktitle={International Conference on Machine Learning},
+  pages={573--582},
+  year={2019},
+  organization={PMLR}
+}
+
+@article{dupont2019augmented,
+  title={Augmented neural odes},
+  author={Dupont, Emilien and Doucet, Arnaud and Teh, Yee Whye},
+  journal={Advances in Neural Information Processing Systems},
+  volume={32},
+  year={2019}
+}
+
+@article{zhang2019approximation,
+  title={Approximation capabilities of neural ordinary differential equations},
+  author={Zhang, Han and Gao, Xi and Unterman, Jacob and Arodz, Tom},
+  journal={arXiv preprint arXiv:1907.12998},
+  volume={2},
+  number={4},
+  pages={3--1},
+  year={2019}
+}
+
+@article{dinh2014nice,
+  title={Nice: Non-linear independent components estimation},
+  author={Dinh, Laurent and Krueger, David and Bengio, Yoshua},
+  journal={arXiv preprint arXiv:1410.8516},
+  year={2014}
+}
+
+@inproceedings{prenger2019waveglow,
+  title={Waveglow: A flow-based generative network for speech synthesis},
+  author={Prenger, Ryan and Valle, Rafael and Catanzaro, Bryan},
+  booktitle={ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  pages={3617--3621},
+  year={2019},
+  organization={IEEE}
+}
+
+@article{kim2018flowavenet,
+  title={FloWaveNet: A generative flow for raw audio},
+  author={Kim, Sungwon and Lee, Sang-gil and Song, Jongyoon and Kim, Jaehyeon and Yoon, Sungroh},
+  journal={arXiv preprint arXiv:1811.02155},
+  year={2018}
+}
+
+@article{hoogeboom2021autoregressive,
+  title={Autoregressive diffusion models},
+  author={Hoogeboom, Emiel and Gritsenko, Alexey A and Bastings, Jasmijn and Poole, Ben and Berg, Rianne van den and Salimans, Tim},
+  journal={arXiv preprint arXiv:2110.02037},
+  year={2021}
+}
+
+@article{chen2019residual,
+  title={Residual flows for invertible generative modeling},
+  author={Chen, Ricky TQ and Behrmann, Jens and Duvenaud, David K and Jacobsen, J{\"o}rn-Henrik},
+  journal={Advances in Neural Information Processing Systems},
+  volume={32},
+  year={2019}
+}
+
+@inproceedings{ziegler2019latent,
+  title={Latent normalizing flows for discrete sequences},
+  author={Ziegler, Zachary and Rush, Alexander},
+  booktitle={International Conference on Machine Learning},
+  pages={7673--7682},
+  year={2019},
+  organization={PMLR}
+}
+
+@inproceedings{ho2019flow,
+  title={Flow++: Improving flow-based generative models with variational dequantization and architecture design},
+  author={Ho, Jonathan and Chen, Xi and Srinivas, Aravind and Duan, Yan and Abbeel, Pieter},
+  booktitle={International Conference on Machine Learning},
+  pages={2722--2730},
+  year={2019},
+  organization={PMLR}
+}
+
+
+@inproceedings{de2020block,
+  title={Block neural autoregressive flow},
+  author={De Cao, Nicola and Aziz, Wilker and Titov, Ivan},
+  booktitle={Uncertainty in artificial intelligence},
+  pages={1263--1273},
+  year={2020},
+  organization={PMLR}
+}
+
+@article{wehenkel2019unconstrained,
+  title={Unconstrained monotonic neural networks},
+  author={Wehenkel, Antoine and Louppe, Gilles},
+  journal={Advances in neural information processing systems},
+  volume={32},
+  year={2019}
+}
+
+@article{muller2019neural,
+  title={Neural importance sampling},
+  author={M{\"u}ller, Thomas and McWilliams, Brian and Rousselle, Fabrice and Gross, Markus and Nov{\'a}k, Jan},
+  journal={ACM Transactions on Graphics (TOG)},
+  volume={38},
+  number={5},
+  pages={1--19},
+  year={2019},
+  publisher={ACM New York, NY, USA}
+}
+
+@article{durkan2019cubic,
+  title={Cubic-spline flows},
+  author={Durkan, Conor and Bekasov, Artur and Murray, Iain and Papamakarios, George},
+  journal={arXiv preprint arXiv:1906.02145},
+  year={2019}
+}
+
+@article{durkan2019neural,
+  title={Neural spline flows},
+  author={Durkan, Conor and Bekasov, Artur and Murray, Iain and Papamakarios, George},
+  journal={Advances in neural information processing systems},
+  volume={32},
+  year={2019}
+}
+
+@article{weng2018flow,
+  title   = "Flow-based Deep Generative Models",
+  author  = "Weng, Lilian",
+  journal = "lilianweng.github.io",
+  year    = "2018",
+  url     = "https://lilianweng.github.io/posts/2018-10-13-flow-models/"
+}
+
+@article{steffen1990simple,
+  title={A simple method for monotonic interpolation in one dimension},
+  author={Steffen, M},
+  journal={Astronomy and Astrophysics},
+  volume={239},
+  pages={443},
+  year={1990}
+}
+
+@article{goodfellow2020generative,
+  title={Generative adversarial networks},
+  author={Goodfellow, Ian and Pouget-Abadie, Jean and Mirza, Mehdi and Xu, Bing and Warde-Farley, David and Ozair, Sherjil and Courville, Aaron and Bengio, Yoshua},
+  journal={Communications of the ACM},
+  volume={63},
+  number={11},
+  pages={139--144},
+  year={2014},
+  publisher={ACM New York, NY, USA}
+}
+
+@article{kingma2013auto,
+  title={Auto-encoding variational bayes},
+  author={Kingma, Diederik P and Welling, Max},
+  journal={arXiv preprint arXiv:1312.6114},
+  year={2013}
+}
+@inproceedings{lecun2005loss,
+  title={Loss functions for discriminative training of energy-based models},
+  author={LeCun, Yann and Huang, Fu Jie},
+  booktitle={International workshop on artificial intelligence and statistics},
+  pages={206--213},
+  year={2005},
+  organization={PMLR}
+}
+
+@inproceedings{rezende2015variational,
+  title={Variational inference with normalizing flows},
+  author={Rezende, Danilo and Mohamed, Shakir},
+  booktitle={International conference on machine learning},
+  pages={1530--1538},
+  year={2015},
+  organization={PMLR}
+}
+
+@misc{asuncion2007uci,
+  title={UCI machine learning repository},
+  author={Asuncion, Arthur and Newman, David},
+  year={2007},
+  publisher={Irvine, CA, USA}
+}
+
+@inproceedings{martin2001database,
+  title={A database of human segmented natural images and its application to evaluating segmentation algorithms and measuring ecological statistics},
+  author={Martin, David and Fowlkes, Charless and Tal, Doron and Malik, Jitendra},
+  booktitle={Proceedings Eighth IEEE International Conference on Computer Vision. ICCV 2001},
+  volume={2},
+  pages={416--423},
+  year={2001},
+  organization={IEEE}
+}
+
+@inproceedings{martinez2022closed,
+  title={Closed-Form Diffeomorphic Transformations for Time Series Alignment},
+  author={Martinez, I{\~n}igo and Viles, Elisabeth and Olaizola, Igor G},
+  booktitle={International Conference on Machine Learning},
+  pages={15122--15158},
+  year={2022},
+  organization={PMLR}
+}
+
+@article{chen2019neural,
+  title={Neural ordinary differential equations},
+  author={Chen, Ricky TQ and Rubanova, Yulia and Bettencourt, Jesse and Duvenaud, David K},
+  journal={Advances in neural information processing systems},
+  volume={31},
+  year={2018}
+}
+
+@article{kingma2014adam,
+  title={Adam: A method for stochastic optimization},
+  author={Kingma, Diederik P and Ba, Jimmy},
+  journal={arXiv preprint arXiv:1412.6980},
+  year={2014}
+}

@@ -1,0 +1,11 @@
+\begin{abstract}
+% Normalizing flows use a sequence of invertible transformations $f$ to transform a simple distribution into a more complex target distribution.
+% The key defining property of flow-based models is that the transformations must be invertible and both $f$ and $f^{-1}$ must be differentiable.
+Normalizing flows based on coupling layers require a bijective one-dimensional function and the derivative of the function with respect the input variable.
+Related flows based on coupling layers such as NICE and RealNVP have an analytic one-pass inverse, but are often less flexible than their autoregressive counterparts. 
+Based on these limitations, this article proposes to implement the coupling function using the integration of continuous piecewise-affine (CPA) velocity functions as a building block. 
+The module acts as a drop-in replacement for the affine or additive transformations commonly found in coupling and autoregressive transforms. 
+When combined with alternating invertible linear transformations, the resulting class of normalizing flows is referred to as closed-form diffeomorphic spline flows (DIFW-NF), which may feature coupling layers, DIFW-NF (C), or autoregressive layers, DIFW-NF (AR).
+Experiments demonstrate that this module significantly enhances the flexibility of both classes of flows, obtaining competitive results in a variety of high-dimensional datasets.
+Unlike the additive and affine transformations, which have limited flexibility, the proposed differentiable monotonic function with sufficiently many intervals can approximate any differentiable monotonic function, yet has a closed-form, tractable Jacobian determinant, and can be inverted analytically. Our parameterization is fully-differentiable, which allows for training by gradient methods.
+\end{abstract}
