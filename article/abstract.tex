@@ -1,6 +1,6 @@
-\begin{abstract}
 % Normalizing flows use a sequence of invertible transformations $f$ to transform a simple distribution into a more complex target distribution.
 % The key defining property of flow-based models is that the transformations must be invertible and both $f$ and $f^{-1}$ must be differentiable.
+\begin{abstract}
 Normalizing flows based on coupling layers require a bijective one-dimensional function and the derivative of the function with respect the input variable.
 Related flows based on coupling layers such as NICE and RealNVP have an analytic one-pass inverse, but are often less flexible than their autoregressive counterparts. 
 Based on these limitations, this article proposes to implement the coupling function using the integration of continuous piecewise-affine (CPA) velocity functions as a building block. 

@@ -1,0 +1,9 @@
+A new building block for normalizing flows that enhances flexibility.
+
+Uses continuous piecewise-affine velocity functions to implement coupling function.
+
+Fully differentiable, allowing for training by gradient methods.
+
+Achieves competitive results in high-dimensional datasets.
+
+Closed-form, tractable Jacobian determinant that can be inverted analytically.
