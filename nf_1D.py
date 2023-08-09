@@ -12,6 +12,7 @@ from data import normalize_01
 from base import NormalizingFlow, train_and_eval, plot_loss
 
 from torch.distributions.uniform import Uniform
+from torch.distributions.multivariate_normal import MultivariateNormal
 from torch.distributions.normal import Normal
 from torch.distributions.beta import Beta
 
@@ -230,6 +231,10 @@ mu = torch.tensor([0.0]).to(device)
 sd = torch.tensor([1.0]).to(device)
 target_distribution = Normal(mu, sd)
 
+mu = torch.tensor([0.0]).to(device)
+sd = torch.tensor([[1.0]]).to(device)
+target_distribution = MultivariateNormal(mu, sd)
+
 alpha = torch.tensor([5.0]).to(device)
 beta = torch.tensor([5.0]).to(device)
 target_distribution = Beta(alpha, beta)
@@ -238,7 +243,7 @@ target_distribution = Beta(alpha, beta)
 
 epochs = 150
 lr = 5e-3
-model, train_losses, test_losses = train_and_eval(model, epochs, lr, train_loader, test_loader, target_distribution)
+model, train_losses, test_losses = train_and_eval(model, epochs, lr, train_loader, test_loader, target_distribution, path=".")
 plot_loss(train_losses, test_losses)
 
 
